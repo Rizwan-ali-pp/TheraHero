@@ -1,7 +1,7 @@
 const config = {
     type: Phaser.AUTO,
     backgroundColor: "#f0f8ff",
-    scene: [BootScene, MenuScene, ReactionScene],
+    scene: [BootScene, MenuScene, ReactionScene,FourFingerScene],
     scale: {
         mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH
