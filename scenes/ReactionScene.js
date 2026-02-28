@@ -6,6 +6,9 @@ class ReactionScene extends Phaser.Scene {
   create() {
     this.cameras.main.fadeIn(500);
 
+    this.inputManager = new InputManager(this);
+    this.audioManager = new AudioManager(this);
+
     this.totalRounds = 10;
     this.currentRound = 0;
     this.missedBalloons = 0;
@@ -21,8 +24,9 @@ class ReactionScene extends Phaser.Scene {
       .text(this.scale.width / 2, 40, "Pop the Balloon!", {
         fontFamily: "Poppins",
         fontSize: "36px",
-        color: "#333",
+        color: "#ffffff",
         fontStyle: "bold",
+        shadow: { blur: 10, color: '#00e5ff', fill: true }
       })
       .setOrigin(0.5);
 
@@ -30,7 +34,7 @@ class ReactionScene extends Phaser.Scene {
       .text(this.scale.width / 2, 90, "Reaction Time: -- ms", {
         fontFamily: "Poppins",
         fontSize: "26px",
-        color: "#444",
+        color: "#e2e8f0",
       })
       .setOrigin(0.5);
 
@@ -39,17 +43,22 @@ class ReactionScene extends Phaser.Scene {
         this.scale.width / 2,
         130,
         "Popped: 0 | Missed: 0 / " + this.totalRounds,
-        { fontFamily: "Poppins", fontSize: "20px", color: "#555" },
+        { fontFamily: "Poppins", fontSize: "20px", color: "#94a3b8" },
       )
       .setOrigin(0.5);
 
     this.createPauseButton();
 
-    // ESC key support
-    this.input.keyboard.on("keydown-ESC", () => {
+    // Manager event support
+    this.inputManager.on("PAUSE", () => {
       if (!this.isPaused) {
         this.showPauseMenu();
       }
+    });
+
+    // Clean up managers on shutdown
+    this.events.once("shutdown", () => {
+      if (this.inputManager) this.inputManager.destroy();
     });
 
     this.scale.on("resize", this.updateLayout, this);
@@ -69,7 +78,7 @@ class ReactionScene extends Phaser.Scene {
     const height = this.scale.height;
 
     this.bg.clear();
-    this.bg.fillGradientStyle(0xd0f4ff, 0xd0f4ff, 0xffffff, 0xffffff, 1);
+    this.bg.fillGradientStyle(0x0f172a, 0x0f172a, 0x1e293b, 0x1e293b, 1);
     this.bg.fillRect(0, 0, width, height);
   }
 
@@ -82,7 +91,7 @@ class ReactionScene extends Phaser.Scene {
     this.scoreText.setPosition(width / 2, 90);
     this.roundText.setPosition(width / 2, 130);
 
-    this.pauseBtn.setPosition(width - 20, 20);
+    this.pauseBtn.setPosition(width - 80, 40);
   }
 
   /* ---------------- GAME LOGIC ---------------- */
@@ -134,6 +143,27 @@ class ReactionScene extends Phaser.Scene {
       scale: 1,
       duration: 400,
       ease: "Back.easeOut",
+      onComplete: () => {
+        // Continuous floating effect
+        this.tweens.add({
+          targets: this.balloon,
+          y: y - Phaser.Math.Between(15, 25),
+          duration: Phaser.Math.Between(800, 1200),
+          yoyo: true,
+          repeat: -1,
+          ease: 'Sine.easeInOut'
+        });
+
+        // Slight rotation to simulate swinging
+        this.tweens.add({
+          targets: this.balloon,
+          angle: Phaser.Math.Between(-5, 5),
+          duration: Phaser.Math.Between(1000, 1500),
+          yoyo: true,
+          repeat: -1,
+          ease: 'Sine.easeInOut'
+        });
+      }
     });
 
     this.startTime = this.time.now;
@@ -164,7 +194,7 @@ class ReactionScene extends Phaser.Scene {
     this.updateCounter();
     this.scoreText.setText("Reaction Time: " + reactionTime + " ms");
 
-    this.sound.play("pop", { volume: 0.6 });
+    this.audioManager.playPop();
 
     this.balloon.destroy();
     this.time.delayedCall(500, () => this.startRound());
@@ -179,21 +209,12 @@ class ReactionScene extends Phaser.Scene {
   /* ---------------- PAUSE SYSTEM ---------------- */
 
   createPauseButton() {
-    this.pauseBtn = this.add
-      .text(this.scale.width - 20, 20, "Pause", {
-        fontFamily: "Poppins",
-        fontSize: "18px",
-        backgroundColor: "#ffaa00",
-        color: "#ffffff",
-        padding: { x: 12, y: 6 },
-      })
-      .setOrigin(1, 0)
-      .setDepth(1000)
-      .setInteractive({ useHandCursor: true });
-
-    this.pauseBtn.on("pointerdown", () => {
+    const x = this.scale.width - 65;
+    this.pauseBtn = UIManager.createButton(this, x, 35, "Pause", 0xffaa00, () => {
       this.showPauseMenu();
-    });
+    }, 110, 38);
+    this.pauseBtn.setFontSize(15);
+    this.pauseBtn.setDepth(1000);
   }
 
   showPauseMenu() {
@@ -208,82 +229,97 @@ class ReactionScene extends Phaser.Scene {
     const width = this.scale.width;
     const height = this.scale.height;
 
-    // Input-blocking overlay
-    this.overlay = this.add
-      .rectangle(width / 2, height / 2, width, height, 0x000000, 0.5)
-      .setDepth(2000)
-      .setInteractive();
+    this.overlay = UIManager.createOverlay(this);
+    this.pausePanel = UIManager.createPanel(this, width / 2, height / 2, 320, 300, "⏸  PAUSED");
 
-    this.pausePanel = this.add
-      .container(width / 2, height / 2)
-      .setDepth(2001)
-      .setScale(0.8)
-      .setAlpha(0);
-
-    const bg = this.add
-      .rectangle(0, 0, 400, 260, 0xffffff)
-      .setStrokeStyle(4, 0xffaa00);
-
-    const title = this.add
-      .text(0, -80, "Paused", {
-        fontFamily: "Poppins",
-        fontSize: "28px",
-        color: "#000",
-      })
-      .setOrigin(0.5);
-
-    const resumeBtn = this.createPauseButtonItem("Resume", -10, () => {
+    const resumeBtn = UIManager.createButton(this, 0, -50, "▶  Resume", 0x00c853, () => {
       this.resumeGame();
-    });
+    }, 220, 44);
+    resumeBtn.setFontSize(16);
 
-    const restartBtn = this.createPauseButtonItem("Restart", 50, () => {
+    const restartBtn = UIManager.createButton(this, 0, 6, "↺  Restart", 0xff9800, () => {
       this.scene.restart();
-    });
+    }, 220, 44);
+    restartBtn.setFontSize(16);
 
-    const menuBtn = this.createPauseButtonItem("Main Menu", 110, () => {
-      this.scene.start("MenuScene");
-    });
+    const menuBtn = UIManager.createButton(this, 0, 62, "⌂  Main Menu", 0x2196f3, () => {
+      SceneTransitionManager.transitionTo(this, "MenuScene");
+    }, 220, 44);
+    menuBtn.setFontSize(16);
 
-    this.pausePanel.add([bg, title, resumeBtn, restartBtn, menuBtn]);
-
-    this.tweens.add({
-      targets: this.pausePanel,
-      scale: 1,
-      alpha: 1,
-      duration: 300,
-      ease: "Back.easeOut",
-    });
+    this.pausePanel.add([resumeBtn, restartBtn, menuBtn]);
+    this.pausePanel.show();
   }
 
   resumeGame() {
-    this.overlay.destroy();
-    this.pausePanel.destroy();
+    this.pausePanel.hide(() => {
+      this.pausePanel.destroy();
+      this.overlay.destroy();
 
-    if (this.balloonTimer) this.balloonTimer.paused = false;
-    if (this.roundTimer) this.roundTimer.paused = false;
+      if (this.balloonTimer) this.balloonTimer.paused = false;
+      if (this.roundTimer) this.roundTimer.paused = false;
 
-    this.isPaused = false;
-  }
-
-  createPauseButtonItem(label, y, callback) {
-    const btn = this.add
-      .text(0, y, label, {
-        fontFamily: "Poppins",
-        fontSize: "22px",
-        backgroundColor: "#2196F3",
-        color: "#ffffff",
-        padding: { x: 20, y: 10 },
-      })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true });
-
-    btn.on("pointerdown", callback);
-    return btn;
+      this.isPaused = false;
+    });
   }
 
   /* ---------------- END ---------------- */
 
   endSession() {
-    this.scene.start("MenuScene");
+    this.audioManager.playPop(); // Optional final sound or custom sound
+    const accuracy = Helpers.calculateAccuracy(this.currentRound, this.totalRounds);
+
+    const avgReaction =
+      this.reactionTimes.length > 0
+        ? (
+            this.reactionTimes.reduce((a, b) => a + b, 0) /
+            this.reactionTimes.length /
+            1000
+          ).toFixed(2)
+        : 0;
+
+    this.showResultPanel(accuracy, avgReaction);
+  }
+
+  showResultPanel(accuracy, avgReaction) {
+    const width = this.scale.width;
+    const height = this.scale.height;
+
+    this.overlay = UIManager.createOverlay(this);
+    const panel = UIManager.createPanel(this, width / 2, height + 300, 400, 320, "Session Complete");
+
+    const resultText = this.add
+      .text(0, -30,
+        `Popped: ${this.currentRound}\nMissed: ${this.missedBalloons}\nAccuracy: ${accuracy}%\nAvg Reaction: ${avgReaction}s`,
+        {
+          fontFamily: "Poppins",
+          fontSize: "22px",
+          color: "#444",
+          align: "center",
+        })
+      .setOrigin(0.5);
+
+    const restartBtn = UIManager.createButton(this, 0, 60, "Restart", 0x4CAF50, () => {
+      this.scene.restart();
+    });
+
+    const menuBtn = UIManager.createButton(this, 0, 120, "Main Menu", 0x2196F3, () => {
+      SceneTransitionManager.transitionTo(this, "MenuScene");
+    });
+    
+    restartBtn.setFontSize('20px');
+    menuBtn.setFontSize('20px');
+
+    panel.add([resultText, restartBtn, menuBtn]);
+
+    // Animate panel slide up
+    this.tweens.add({
+      targets: panel,
+      y: height / 2,
+      scale: 1,
+      alpha: 1,
+      duration: 600,
+      ease: "Back.easeOut",
+    });
   }
 }
