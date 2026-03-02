@@ -20,8 +20,8 @@ class MenuScene extends Phaser.Scene {
     const height = this.scale.height;
 
     this.bg.clear();
-    // Premium dark clinical background (Deep Slate / Navy)
-    this.bg.fillGradientStyle(0x0f172a, 0x0f172a, 0x1e293b, 0x1e293b, 1);
+    // Vibrant purple-to-deep-violet gradient
+    this.bg.fillGradientStyle(0x1a0533, 0x1a0533, 0x3d0f6b, 0x3d0f6b, 1);
     this.bg.fillRect(0, 0, width, height);
   }
 
@@ -31,34 +31,34 @@ class MenuScene extends Phaser.Scene {
       fontSize: "64px",
       fontStyle: "800",
       color: "#ffffff",
-      shadow: { blur: 15, color: '#00e5ff', fill: true }
+      shadow: { blur: 20, color: '#ffd93d', fill: true }
     }).setOrigin(0.5);
 
-    // Add a subtitle for clinical feel
-    this.subtitle = this.add.text(0, 0, "CLINICAL REHABILITATION SUITE", {
+    // Subtitle
+    this.subtitle = this.add.text(0, 0, "REHABILITATION TRAINING SUITE", {
       fontFamily: "Poppins",
       fontSize: "18px",
       letterSpacing: 4,
-      color: "#8892b0"
+      color: "#e0b0ff"
     }).setOrigin(0.5);
 
     this.mode1Button = UIManager.createButton(
-      this, 0, 0, "🎈  Pop the Balloon!", 0x00e5ff, 
+      this, 0, 0, "🎈  Pop the Balloon!", 0xff6b6b, 
       () => SceneTransitionManager.transitionTo(this, "ReactionScene")
     );
 
     this.mode2Button = UIManager.createButton(
-      this, 0, 0, "🖐  Four Finger Rush", 0xbb86fc, 
+      this, 0, 0, "🖐  Four Finger Rush", 0x6bcb77, 
       () => SceneTransitionManager.transitionTo(this, "FourFingerScene")
     );
 
     this.mode3Button = UIManager.createButton(
-      this, 0, 0, "〰️  Trace the Path", 0xffb74d, 
+      this, 0, 0, "〰️  Trace the Path", 0xffd93d, 
       () => SceneTransitionManager.transitionTo(this, "TracePathScene")
     );
 
     this.mode4Button = UIManager.createButton(
-      this, 0, 0, "🎨  Color Sort", 0xa78bfa,
+      this, 0, 0, "🎨  Color Sort", 0x4d96ff,
       () => SceneTransitionManager.transitionTo(this, "ColorSortScene")
     );
 

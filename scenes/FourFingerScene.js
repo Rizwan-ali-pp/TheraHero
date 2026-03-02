@@ -40,8 +40,8 @@ class FourFingerScene extends Phaser.Scene {
     this.bg = this.add.graphics();
     const width = this.scale.width;
     const height = this.scale.height;
-    // Premium dark clinical background (Deep Slate / Navy)
-    this.bg.fillGradientStyle(0x0f172a, 0x0f172a, 0x1e293b, 0x1e293b, 1);
+    // Vibrant deep violet to rich purple
+    this.bg.fillGradientStyle(0x1a0533, 0x1a0533, 0x3d0f6b, 0x3d0f6b, 1);
     this.bg.fillRect(0, 0, width, height);
   }
 
@@ -54,8 +54,8 @@ class FourFingerScene extends Phaser.Scene {
     
     // Draw a stylized hand silhouette background
     this.handGraphics = this.add.graphics();
-    this.handGraphics.fillStyle(0x1e293b, 0.6);
-    this.handGraphics.lineStyle(2, 0x334155, 1);
+    this.handGraphics.fillStyle(0x4a1080, 0.5);
+    this.handGraphics.lineStyle(2, 0x9b59b6, 1);
     
     // Draw abstract palm and wrist
     this.handGraphics.fillRoundedRect(width * 0.35, height * 0.6, width * 0.3, height * 0.3, 20);
@@ -66,7 +66,7 @@ class FourFingerScene extends Phaser.Scene {
       const x = width * (0.2 + i * 0.2);
       const y = height * 0.5 - (i === 1 || i === 2 ? 30 : 0); // Middle/Ring fingers slightly higher
 
-      const pad = this.add.circle(x, y, 60, 0x1e293b).setStrokeStyle(4, 0x334155);
+      const pad = this.add.circle(x, y, 60, 0x2d0a50).setStrokeStyle(4, 0x9b59b6);
       
       this.handGraphics.fillRoundedRect(x - 20, y, 40, height * 0.6 - y + 20, 20); // Finger connecting to palm
       this.handGraphics.strokeRoundedRect(x - 20, y, 40, height * 0.6 - y + 20, 20);
@@ -75,7 +75,7 @@ class FourFingerScene extends Phaser.Scene {
         .text(pad.x, pad.y, labels[i], {
           fontFamily: "Poppins",
           fontSize: "18px",
-          color: "#e2e8f0",
+          color: "#e0b0ff",
           fontStyle: "bold",
           align: "center",
         })
@@ -161,14 +161,16 @@ class FourFingerScene extends Phaser.Scene {
   }
 
   highlightPad(index) {
-    this.pads[index].pad.setStrokeStyle(6, 0x00e5ff);
-    this.pads[index].pad.setFillStyle(0x00e5ff, 0.2);
+    this.pads[index].pad.setStrokeStyle(6, 0xff6b6b);
+    this.pads[index].pad.setFillStyle(0xff6b6b, 0.25);
+    this.tweens.add({ targets: this.pads[index].pad, scale: 1.12, duration: 120, ease: 'Back.easeOut' });
   }
 
   clearHighlight() {
     this.pads.forEach((p) => {
-      p.pad.setStrokeStyle(4, 0x334155);
-      p.pad.setFillStyle(0x1e293b, 1);
+      p.pad.setStrokeStyle(4, 0x9b59b6);
+      p.pad.setFillStyle(0x2d0a50, 1);
+      this.tweens.add({ targets: p.pad, scale: 1, duration: 120, ease: 'Power2' });
     });
   }
 

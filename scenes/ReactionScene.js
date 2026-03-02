@@ -21,12 +21,12 @@ class ReactionScene extends Phaser.Scene {
     this.createBackground();
 
     this.modeTitle = this.add
-      .text(this.scale.width / 2, 40, "Pop the Balloon!", {
+      .text(this.scale.width / 2, 40, "🎈  Pop the Balloon!", {
         fontFamily: "Poppins",
         fontSize: "36px",
         color: "#ffffff",
         fontStyle: "bold",
-        shadow: { blur: 10, color: '#00e5ff', fill: true }
+        shadow: { blur: 14, color: '#ff6b6b', fill: true }
       })
       .setOrigin(0.5);
 
@@ -34,7 +34,7 @@ class ReactionScene extends Phaser.Scene {
       .text(this.scale.width / 2, 90, "Reaction Time: -- ms", {
         fontFamily: "Poppins",
         fontSize: "26px",
-        color: "#e2e8f0",
+        color: "#ffd93d",
       })
       .setOrigin(0.5);
 
@@ -43,7 +43,7 @@ class ReactionScene extends Phaser.Scene {
         this.scale.width / 2,
         130,
         "Popped: 0 | Missed: 0 / " + this.totalRounds,
-        { fontFamily: "Poppins", fontSize: "20px", color: "#94a3b8" },
+        { fontFamily: "Poppins", fontSize: "20px", color: "#e0b0ff" },
       )
       .setOrigin(0.5);
 
@@ -78,7 +78,8 @@ class ReactionScene extends Phaser.Scene {
     const height = this.scale.height;
 
     this.bg.clear();
-    this.bg.fillGradientStyle(0x0f172a, 0x0f172a, 0x1e293b, 0x1e293b, 1);
+    // Vibrant deep violet to purple
+    this.bg.fillGradientStyle(0x1a0533, 0x1a0533, 0x3d0f6b, 0x3d0f6b, 1);
     this.bg.fillRect(0, 0, width, height);
   }
 

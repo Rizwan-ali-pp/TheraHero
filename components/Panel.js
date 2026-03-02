@@ -6,21 +6,21 @@ class Panel extends Phaser.GameObjects.Container {
     const hh = height / 2;
 
     // ── Outer glow / bloom shadow ──────────────────────────────
-    this.glow = scene.add.rectangle(0, 0, width + 24, height + 24, 0x00e5ff, 0.12)
+    this.glow = scene.add.rectangle(0, 0, width + 24, height + 24, 0xffd93d, 0.10)
       .setOrigin(0.5);
 
     // ── Drop shadow ────────────────────────────────────────────
     this.shadow = scene.add.rectangle(6, 10, width, height, 0x000000, 0.55)
       .setOrigin(0.5);
 
-    // ── Main body: layered gradient via two rects ──────────────
-    this.bodyBg = scene.add.rectangle(0, 0, width, height, 0x0d1b2a, 1)
-      .setStrokeStyle(2, 0x1e3a4a)
+    // ── Main body: deep purple ──────────────────────────────────
+    this.bodyBg = scene.add.rectangle(0, 0, width, height, 0x1e0340, 1)
+      .setStrokeStyle(2, 0x4a1080)
       .setOrigin(0.5);
 
-    // Accent border (neon cyan)
+    // Accent border (warm gold)
     this.border = scene.add.rectangle(0, 0, width, height, 0x000000, 0)
-      .setStrokeStyle(3, 0x00e5ff)
+      .setStrokeStyle(3, 0xffd93d)
       .setOrigin(0.5);
 
     // Inner top highlight strip (glass feel)
@@ -29,11 +29,11 @@ class Panel extends Phaser.GameObjects.Container {
 
     // ── Title area background ─────────────────────────────────
     const titleAreaH = 54;
-    this.titleBg = scene.add.rectangle(0, -hh + titleAreaH / 2, width, titleAreaH, 0x00e5ff, 0.1)
+    this.titleBg = scene.add.rectangle(0, -hh + titleAreaH / 2, width, titleAreaH, 0xffd93d, 0.12)
       .setOrigin(0.5);
 
-    // ── Neon accent line below title ──────────────────────────
-    this.divider = scene.add.rectangle(0, -hh + titleAreaH + 1, width - 40, 2, 0x00e5ff, 0.6)
+    // ── Gold accent line below title ──────────────────────────
+    this.divider = scene.add.rectangle(0, -hh + titleAreaH + 1, width - 40, 2, 0xffd93d, 0.7)
       .setOrigin(0.5, 0.5);
 
     // ── Title text ────────────────────────────────────────────
@@ -42,15 +42,15 @@ class Panel extends Phaser.GameObjects.Container {
       fontSize: '28px',
       color: '#ffffff',
       fontStyle: 'bold',
-      shadow: { blur: 14, color: '#00e5ff', fill: true }
+      shadow: { blur: 14, color: '#ffd93d', fill: true }
     }).setOrigin(0.5);
 
-    // ── Corner accents ────────────────────────────────────────
+    // ── Corner accents (warm gold) ────────────────────────────
     const cornerSize = 14;
     const cx = hw - cornerSize / 2;
     const cy = hh - cornerSize / 2;
     const makeCorner = (ox, oy) =>
-      scene.add.rectangle(ox, oy, cornerSize, cornerSize, 0x00e5ff, 0.7).setOrigin(0.5);
+      scene.add.rectangle(ox, oy, cornerSize, cornerSize, 0xffd93d, 0.7).setOrigin(0.5);
 
     this.c1 = makeCorner(-cx, -cy);
     this.c2 = makeCorner( cx, -cy);
