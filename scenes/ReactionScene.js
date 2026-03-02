@@ -267,7 +267,7 @@ class ReactionScene extends Phaser.Scene {
   /* ---------------- END ---------------- */
 
   endSession() {
-    this.audioManager.playPop(); // Optional final sound or custom sound
+    //this.audioManager.playPop(); // Optional final sound or custom sound
     const accuracy = Helpers.calculateAccuracy(this.currentRound, this.totalRounds);
 
     const avgReaction =
@@ -295,7 +295,7 @@ class ReactionScene extends Phaser.Scene {
         {
           fontFamily: "Poppins",
           fontSize: "22px",
-          color: "#444",
+          color: "#ffffffff",
           align: "center",
         })
       .setOrigin(0.5);

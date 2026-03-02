@@ -238,7 +238,7 @@ class FourFingerScene extends Phaser.Scene {
         {
           fontFamily: "Poppins",
           fontSize: "22px",
-          color: "#444",
+          color: "#f6f3f3ff",
           align: "center",
         })
       .setOrigin(0.5);
