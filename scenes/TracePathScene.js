@@ -145,11 +145,11 @@ class TracePathScene extends Phaser.Scene {
     this.input.on("drag", (pointer, gameObject, dragX, dragY) => {
         if (!this.isPlaying || this.isPaused) return;
         
-        gameObject.x = dragX;
-        gameObject.y = dragY;
+        const constrainedPos = this.checkBounds(dragX, dragY);
+        gameObject.x = constrainedPos.x;
+        gameObject.y = constrainedPos.y;
 
-        this.checkBounds(dragX, dragY);
-        this.checkFinish(dragX, dragY);
+        this.checkFinish(gameObject.x, gameObject.y);
     });
 
     this.input.on("dragend", (pointer, gameObject) => {
@@ -170,18 +170,27 @@ class TracePathScene extends Phaser.Scene {
   checkBounds(x, y) {
       // Find distance to closest point on the path
       let minDistance = Number.MAX_VALUE;
+      let closestPoint = null;
       for (let i = 0; i < this.pathPoints.length; i++) {
           const pt = this.pathPoints[i];
           const dist = Phaser.Math.Distance.Between(x, y, pt.x, pt.y);
           if (dist < minDistance) {
               minDistance = dist;
+              closestPoint = pt;
           }
       }
 
       // If outside the path width (radius) minus the cursor radius (16)
       const maxAllowedDistance = (this.pathWidth / 2) - 16; 
       
-      if (minDistance > maxAllowedDistance) {
+      let finalX = x;
+      let finalY = y;
+
+      if (minDistance > maxAllowedDistance && closestPoint) {
+          const angle = Phaser.Math.Angle.Between(closestPoint.x, closestPoint.y, x, y);
+          finalX = closestPoint.x + Math.cos(angle) * maxAllowedDistance;
+          finalY = closestPoint.y + Math.sin(angle) * maxAllowedDistance;
+
           if (!this.isOutOfBounds) {
               this.isOutOfBounds = true;
               this.errors++;
@@ -202,6 +211,8 @@ class TracePathScene extends Phaser.Scene {
               this.cursor.setStrokeStyle(4, 0xffffff);
           }
       }
+
+      return { x: finalX, y: finalY };
   }
 
   checkFinish(cursorX, cursorY) {

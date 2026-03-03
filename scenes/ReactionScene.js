@@ -197,7 +197,17 @@ class ReactionScene extends Phaser.Scene {
 
     this.audioManager.playPop();
 
-    this.balloon.destroy();
+    this.tweens.add({
+      targets: this.balloon,
+      scale: 1.5,
+      alpha: 0,
+      duration: 150,
+      ease: 'Power2',
+      onComplete: () => {
+        if (this.balloon) this.balloon.destroy();
+      }
+    });
+    
     this.time.delayedCall(500, () => this.startRound());
   }
 
