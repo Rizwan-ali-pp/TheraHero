@@ -142,9 +142,9 @@ class ColorSortScene extends Phaser.Scene {
     this.roundStartTime = this.time.now;
     this.roundText.setText(`Round: ${this.currentRound} / ${this.totalRounds}`);
 
-    // Pick 4 random distinct colors – one is the "correct" answer
+    // Pick 6 random distinct colors – one is the "correct" answer
     const shuffled = Phaser.Utils.Array.Shuffle([...this.palette]);
-    const boxColors = shuffled.slice(0, 4);
+    const boxColors = shuffled.slice(0, 6);
     this.correctColor = Phaser.Utils.Array.GetRandom(boxColors);
 
     this.spawnBoxes(boxColors);
@@ -159,10 +159,12 @@ class ColorSortScene extends Phaser.Scene {
     const margin  = 70;
 
     const positions = [
-      { x: margin,         y: height * 0.42 },
-      { x: width - margin, y: height * 0.42 },
-      { x: margin,         y: height * 0.72 },
-      { x: width - margin, y: height * 0.72 },
+      { x: margin,         y: height * 0.30 },
+      { x: width - margin, y: height * 0.30 },
+      { x: margin,         y: height * 0.55 },
+      { x: width - margin, y: height * 0.55 },
+      { x: margin,         y: height * 0.80 },
+      { x: width - margin, y: height * 0.80 },
     ];
 
     this.boxes = boxColors.map((color, i) => {

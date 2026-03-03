@@ -10,18 +10,86 @@ class TracePathScene extends Phaser.Scene {
     this.inputManager = new InputManager(this);
     this.audioManager = new AudioManager(this);
 
-    // Game variables
+    // Level data
+    this.currentLevel = 0;
+    this.levels = [
+      {
+        name: "Level 1: Simple Arc",
+        width: 70,
+        points: (w, h) => [
+          new Phaser.Math.Vector2(w * 0.15, h * 0.6),
+          new Phaser.Math.Vector2(w * 0.5, h * 0.35),
+          new Phaser.Math.Vector2(w * 0.85, h * 0.6)
+        ]
+      },
+      {
+        name: "Level 2: Rolling Hills",
+        width: 65,
+        points: (w, h) => [
+          new Phaser.Math.Vector2(w * 0.1, h * 0.6),
+          new Phaser.Math.Vector2(w * 0.3, h * 0.35),
+          new Phaser.Math.Vector2(w * 0.5, h * 0.85),
+          new Phaser.Math.Vector2(w * 0.7, h * 0.35),
+          new Phaser.Math.Vector2(w * 0.9, h * 0.6)
+        ]
+      },
+      {
+        name: "Level 3: Ocean Waves",
+        width: 60,
+        points: (w, h) => [
+          new Phaser.Math.Vector2(w * 0.1, h * 0.6),
+          new Phaser.Math.Vector2(w * 0.2, h * 0.35),
+          new Phaser.Math.Vector2(w * 0.35, h * 0.85),
+          new Phaser.Math.Vector2(w * 0.5, h * 0.35),
+          new Phaser.Math.Vector2(w * 0.65, h * 0.85),
+          new Phaser.Math.Vector2(w * 0.8, h * 0.35),
+          new Phaser.Math.Vector2(w * 0.9, h * 0.6)
+        ]
+      },
+      {
+        name: "Level 4: Winding River",
+        width: 55,
+        points: (w, h) => [
+          new Phaser.Math.Vector2(w * 0.1, h * 0.6),
+          new Phaser.Math.Vector2(w * 0.2, h * 0.35),
+          new Phaser.Math.Vector2(w * 0.3, h * 0.85),
+          new Phaser.Math.Vector2(w * 0.4, h * 0.35),
+          new Phaser.Math.Vector2(w * 0.5, h * 0.85),
+          new Phaser.Math.Vector2(w * 0.6, h * 0.35),
+          new Phaser.Math.Vector2(w * 0.7, h * 0.85),
+          new Phaser.Math.Vector2(w * 0.8, h * 0.35),
+          new Phaser.Math.Vector2(w * 0.9, h * 0.6)
+        ]
+      },
+      {
+        name: "Level 5: Serpentine Flow",
+        width: 50,
+        points: (w, h) => [
+          new Phaser.Math.Vector2(w * 0.1, h * 0.6),
+          new Phaser.Math.Vector2(w * 0.18, h * 0.35),
+          new Phaser.Math.Vector2(w * 0.26, h * 0.85),
+          new Phaser.Math.Vector2(w * 0.34, h * 0.35),
+          new Phaser.Math.Vector2(w * 0.42, h * 0.85),
+          new Phaser.Math.Vector2(w * 0.5, h * 0.35),
+          new Phaser.Math.Vector2(w * 0.58, h * 0.85),
+          new Phaser.Math.Vector2(w * 0.66, h * 0.35),
+          new Phaser.Math.Vector2(w * 0.74, h * 0.85),
+          new Phaser.Math.Vector2(w * 0.82, h * 0.35),
+          new Phaser.Math.Vector2(w * 0.9, h * 0.6)
+        ]
+      }
+    ];
+
     this.isPlaying = false;
     this.isPaused = false;
     this.errors = 0;
     this.startTime = 0;
     this.elapsedTime = 0;
-    this.pathWidth = 60;
+    this.pathWidth = this.levels[this.currentLevel].width;
     this.isOutOfBounds = false;
 
     this.createUI();
-    this.createPath();
-    this.createCursor();
+    this.setupLevel(this.currentLevel);
     this.createPauseButton();
 
     this.inputManager.on("PAUSE", () => {
@@ -81,48 +149,66 @@ class TracePathScene extends Phaser.Scene {
     this.pauseBtn.setFontSize(15);
   }
 
-  createPath() {
+  setupLevel(levelIndex) {
+    this.currentLevel = levelIndex;
+    const levelData = this.levels[levelIndex];
+    this.pathWidth = levelData.width;
+    this.modeTitle.setText(levelData.name);
+
+    // Clean up previous path if it exists
+    if (this.pathGraphics) {
+        this.pathGraphics.clear();
+        this.startZone.destroy();
+        this.endZone.destroy();
+        this.startText.destroy();
+        this.finishText.destroy();
+        this.cursor.destroy();
+    }
+
     const width = this.scale.width;
     const height = this.scale.height;
-
-    // Define points for a curved path
-    const points = [
-        new Phaser.Math.Vector2(width * 0.15, height * 0.6),
-        new Phaser.Math.Vector2(width * 0.3, height * 0.3),
-        new Phaser.Math.Vector2(width * 0.5, height * 0.8),
-        new Phaser.Math.Vector2(width * 0.7, height * 0.3),
-        new Phaser.Math.Vector2(width * 0.85, height * 0.6)
-    ];
+    const points = levelData.points(width, height);
 
     this.path = new Phaser.Curves.Spline(points);
-    this.pathPoints = this.path.getDistancePoints(10); // get points every 10 pixels roughly for collision
+    this.pathPoints = this.path.getDistancePoints(8); // Finer points for collision
 
-    // Draw the path outline
     this.pathGraphics = this.add.graphics();
     
-    // Draw outer glow
-    this.pathGraphics.lineStyle(this.pathWidth + 10, 0x00e5ff, 0.3);
+    // Draw outer glows for "premium" feel
+    this.pathGraphics.lineStyle(this.pathWidth + 12, 0x00e5ff, 0.1);
+    this.path.draw(this.pathGraphics, 128);
+    this.pathGraphics.lineStyle(this.pathWidth + 6, 0x00e5ff, 0.2);
     this.path.draw(this.pathGraphics, 128);
     
     // Draw main track
     this.pathGraphics.lineStyle(this.pathWidth, 0x1e293b, 1);
     this.path.draw(this.pathGraphics, 128);
     
-    // Draw inner thin line
-    this.pathGraphics.lineStyle(4, 0x334155, 1);
+    // Draw inner guide line
+    this.pathGraphics.lineStyle(2, 0x475569, 0.4);
     this.path.draw(this.pathGraphics, 128);
 
     // Start Zone
-    this.startZone = this.add.circle(points[0].x, points[0].y, this.pathWidth / 2 + 5, 0x4caf50);
-    this.add.text(points[0].x, points[0].y - 50, "START", {
-      fontFamily: "Poppins", fontSize: "16px", color: "#4caf50", fontStyle: "bold"
+    this.startZone = this.add.circle(points[0].x, points[0].y, this.pathWidth / 2 + 3, 0x4caf50);
+    this.startText = this.add.text(points[0].x, points[0].y - 45, "START", {
+      fontFamily: "Poppins", fontSize: "14px", color: "#4caf50", fontStyle: "bold"
     }).setOrigin(0.5);
 
     // End Zone
-    this.endZone = this.add.circle(points[points.length - 1].x, points[points.length - 1].y, this.pathWidth / 2 + 5, 0xff9800);
-    this.add.text(points[points.length - 1].x, points[points.length - 1].y - 50, "FINISH", {
-      fontFamily: "Poppins", fontSize: "16px", color: "#ff9800", fontStyle: "bold"
+    this.endZone = this.add.circle(points[points.length - 1].x, points[points.length - 1].y, this.pathWidth / 2 + 3, 0xff9800);
+    this.finishText = this.add.text(points[points.length - 1].x, points[points.length - 1].y - 45, "FINISH", {
+      fontFamily: "Poppins", fontSize: "14px", color: "#ff9800", fontStyle: "bold"
     }).setOrigin(0.5);
+
+    this.createCursor();
+    
+    // Reset game state for new level
+    this.isPlaying = false;
+    this.elapsedTime = 0;
+    this.errors = 0;
+    this.timerText.setText("Time: 0.0s");
+    this.errorText.setText("Errors: 0");
+    this.isOutOfBounds = false;
   }
 
   createCursor() {
@@ -239,7 +325,12 @@ class TracePathScene extends Phaser.Scene {
     AudioManager.playSound(this, "pop", { volume: 0.6 });
     const finalSeconds = parseFloat((this.elapsedTime / 1000).toFixed(2));
     
-    dataManager.saveGameResult("trace_path", { timeInSeconds: finalSeconds, errors: this.errors });
+    dataManager.saveGameResult("trace_path", { 
+        level: this.currentLevel + 1,
+        levelName: this.levels[this.currentLevel].name,
+        timeInSeconds: finalSeconds, 
+        errors: this.errors 
+    });
     this.showResultPanel();
   }
 
@@ -247,47 +338,73 @@ class TracePathScene extends Phaser.Scene {
     this.overlay = new Overlay(this);
     const finalSeconds = (this.elapsedTime / 1000).toFixed(2);
     
-    // Panel wide enough for two side-by-side buttons
+    // Perfectly balanced result panel
     this.resultPanel = new Panel(
       this,
       this.scale.width / 2,
       this.scale.height / 2,
-      500,
-      320,
+      520,
+      440,
       "Trace Complete!"
     );
+
+    // Check if there is a next level
+    const hasNextLevel = this.currentLevel < this.levels.length - 1;
 
     const stats = this.add
       .text(
         0,
-        -20,
-        `Time: ${finalSeconds}s\nWall Hits (Errors): ${this.errors}`,
-        { fontFamily: "Poppins", fontSize: "22px", color: "#e2e8f0", align: "center" }
+        -55,
+        `Level: ${this.levels[this.currentLevel].name}\nTime: ${finalSeconds}s\nErrors: ${this.errors}`,
+        { fontFamily: "Poppins", fontSize: "22px", color: "#e2e8f0", align: "center", lineSpacing: 12 }
       )
       .setOrigin(0.5);
 
-    // Buttons side-by-side: each 180px wide, spaced 110px apart from center
+    const btnY = 145;
+    const btnSpacing = 160;
+
+    if (hasNextLevel) {
+        // Next Level Button - positioned centrally with ample vertical air
+        const nextBtn = UIManager.createButton(
+            this,
+            0,
+            50,
+            "Next Level ➔",
+            0x6bcb77,
+            () => {
+              this.resultPanel.hide(() => {
+                this.overlay.destroy();
+                this.setupLevel(this.currentLevel + 1);
+              });
+            },
+            260,
+            55
+        );
+        nextBtn.setFontSize(22);
+        this.resultPanel.add(nextBtn);
+    }
+
     const restartBtn = UIManager.createButton(
       this,
-      -105,
-      80,
+      hasNextLevel ? -btnSpacing / 2 : -105,
+      btnY,
       "Restart",
-      0x4caf50,
+      0xff9800,
       () => {
         this.resultPanel.hide(() => {
           this.overlay.destroy();
-          this.scene.restart();
+          this.setupLevel(this.currentLevel);
         });
       },
-      180,
+      hasNextLevel ? 150 : 180,
       46
     );
     restartBtn.setFontSize(16);
 
     const menuBtn = UIManager.createButton(
       this,
-      105,
-      80,
+      hasNextLevel ? btnSpacing / 2 : 105,
+      btnY,
       "Main Menu",
       0x2196f3,
       () => {
@@ -295,7 +412,7 @@ class TracePathScene extends Phaser.Scene {
         this.overlay.destroy();
         SceneTransitionManager.transitionTo(this, "MenuScene");
       },
-      180,
+      hasNextLevel ? 150 : 180,
       46
     );
     menuBtn.setFontSize(16);
@@ -326,10 +443,10 @@ class TracePathScene extends Phaser.Scene {
     }, 220, 44);
     resumeBtn.setFontSize(16);
 
-    const restartBtn = UIManager.createButton(this, 0, 6, "↺  Restart", 0xff9800, () => {
+    const restartBtn = UIManager.createButton(this, 0, 8, "↺  Restart Level", 0xff9800, () => {
       this.pausePanel.hide();
       this.overlay.destroy();
-      this.scene.restart();
+      this.setupLevel(this.currentLevel);
     }, 220, 44);
     restartBtn.setFontSize(16);
 

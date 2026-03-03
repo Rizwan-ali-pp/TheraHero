@@ -48,35 +48,43 @@ class ProfileScene extends Phaser.Scene {
             letterSpacing: 2
         }).setOrigin(0.5);
 
-        // Overall Play Count
-        this.totalPlaysText = this.add.text(width / 2, 140, "Total Games Played: --", {
-            fontFamily: "Poppins",
-            fontSize: "24px",
-            color: "#ffd93d",
-            fontStyle: "bold"
-        }).setOrigin(0.5);
 
-        // Change Password Form DOM
+        // Change Password Button (Top Right)
+        this.pwdToggleBtn = new Button(this, width - 110, 45, "Change Password", 0x4a1080, () => {
+            this.showPasswordModal();
+        }, 180, 40);
+        this.pwdToggleBtn.setFontSize(16);
+
+        // Modal Background Overlay
+        this.modalOverlay = this.add.rectangle(0, 0, width, height, 0x000000, 0.7)
+            .setOrigin(0)
+            .setInteractive()
+            .setVisible(false)
+            .setDepth(1500);
+
+        // Password Modal Panel
+        this.pwdModal = new Panel(this, width / 2, height / 2, 450, 280, "UPDATE PASSWORD");
+        this.pwdModal.hide();
+        this.pwdModal.setDepth(1600);
+
+        // Simple DOM Form for the Modal
         const pwdFormHtml = `
-            <div style="display: flex; flex-direction: row; gap: 10px; align-items: center; justify-content: center;">
-                <div style="position: relative; width: 250px;">
-                    <input type="password" name="newPassword" placeholder="New Password" 
-                           style="box-sizing: border-box; width: 100%; padding: 10px; padding-right: 35px; font-size: 16px; border-radius: 6px; border: 2px solid #e0b0ff; background: #2a0845; color: white; outline: none; font-family: 'Poppins', sans-serif;" />
-                    <span id="toggleNewPassword" style="position: absolute; right: 10px; top: 10px; cursor: pointer; font-size: 18px;">👁️</span>
+            <div id="pwdModalForm" style="display: flex; flex-direction: column; gap: 15px; align-items: center; width: 350px;">
+                <div style="position: relative; width: 100%;">
+                    <input type="password" name="newPassword" placeholder="Enter new password" 
+                           style="box-sizing: border-box; width: 100%; padding: 12px; padding-right: 40px; font-size: 16px; border-radius: 8px; border: 2px solid #e0b0ff; background: #1a0533; color: white; outline: none; font-family: 'Poppins', sans-serif;" />
+                    <span id="toggleNewPassword" style="position: absolute; right: 12px; top: 12px; cursor: pointer; font-size: 18px;">👁️</span>
                 </div>
-                <button id="changePwdBtn" style="padding: 10px 15px; font-size: 16px; border-radius: 6px; border: none; background: #4a1080; color: white; font-family: 'Poppins', sans-serif; cursor: pointer; font-weight: bold; transition: background 0.3s;">Update</button>
+                <div style="display: flex; gap: 10px; width: 100%;">
+                    <button id="submitPwdBtn" style="flex: 2; padding: 12px; font-size: 16px; border-radius: 8px; border: none; background: #6bcb77; color: white; font-family: 'Poppins', sans-serif; cursor: pointer; font-weight: bold; transition: opacity 0.2s;">Update Password</button>
+                    <button id="closePwdBtn" style="flex: 1; padding: 12px; font-size: 16px; border-radius: 8px; border: none; background: #ff4444; color: white; font-family: 'Poppins', sans-serif; cursor: pointer; font-weight: bold; transition: opacity 0.2s;">Cancel</button>
+                </div>
+                <p id="pwdFeedback" style="text-align: center; color: #ff4444; font-family: 'Poppins', sans-serif; font-size: 14px; margin: 0; min-height: 20px;"></p>
             </div>
-            <p id="pwdFeedback" style="text-align: center; color: #ff4444; font-family: 'Poppins', sans-serif; font-size: 14px; margin-top: 5px; height: 16px;"></p>
         `;
         
-        this.pwdFormDom = this.add.dom(width / 2, 205).createFromHTML(pwdFormHtml);
-        
-        // Add hover effects manually since it's injected
-        const btnElement = this.pwdFormDom.getChildByID("changePwdBtn");
-        if (btnElement) {
-            btnElement.onmouseover = () => btnElement.style.background = "#ffd93d";
-            btnElement.onmouseout = () => btnElement.style.background = "#4a1080";
-        }
+        this.pwdFormDom = this.add.dom(width / 2, height / 2 + 30).createFromHTML(pwdFormHtml);
+        this.pwdFormDom.setDepth(1700).setVisible(false);
 
         this.pwdFormDom.addListener('click');
         this.pwdFormDom.on('click', (event) => {
@@ -91,9 +99,11 @@ class ProfileScene extends Phaser.Scene {
                         event.target.innerText = '👁️';
                     }
                 }
-            } else if (event.target.id === 'changePwdBtn') {
+            } else if (event.target.id === 'submitPwdBtn') {
                 event.preventDefault();
                 this.handleChangePassword();
+            } else if (event.target.id === 'closePwdBtn') {
+                this.hidePasswordModal();
             }
         });
 
@@ -113,10 +123,7 @@ class ProfileScene extends Phaser.Scene {
         this.stats = await dataManager.getUserStats();
         if (this.stats) {
             this.emailText.setText(this.stats.email);
-            this.totalPlaysText.setText(`Total Games Played: ${this.stats.totalPlays}`);
             this.renderStatCards();
-        } else {
-            this.totalPlaysText.setText("No game data found.");
         }
     }
 
@@ -137,7 +144,7 @@ class ProfileScene extends Phaser.Scene {
         ];
 
         let index = 0;
-        const startY = height * 0.42; // Pushed down to make room for form
+        const startY = height * 0.32; // Moved up since pwd form moved to top right
         const cardWidth = Math.min(width * 0.4, 350);
         const cardHeight = 160;
         const gapX = cardWidth + 40;
@@ -199,10 +206,13 @@ class ProfileScene extends Phaser.Scene {
 
         this.drawBackground();
 
-        if (this.title) this.title.setPosition(width / 2, Math.max(60, height * 0.1));
-        if (this.emailText) this.emailText.setPosition(width / 2, Math.max(110, height * 0.15));
-        if (this.totalPlaysText) this.totalPlaysText.setPosition(width / 2, Math.max(140, height * 0.19));
-        if (this.pwdFormDom) this.pwdFormDom.setPosition(width / 2, Math.max(205, height * 0.27));
+        if (this.title) this.title.setPosition(width / 2, Math.max(60, height * 0.12));
+        if (this.emailText) this.emailText.setPosition(width / 2, Math.max(110, height * 0.17));
+        
+        if (this.pwdToggleBtn) this.pwdToggleBtn.setPosition(width - 110, 45);
+        if (this.pwdModal) this.pwdModal.setPosition(width / 2, height / 2);
+        if (this.modalOverlay) this.modalOverlay.setSize(width, height);
+        if (this.pwdFormDom) this.pwdFormDom.setPosition(width / 2, height / 2 + 30);
 
         if (this.backBtn) this.backBtn.setPosition(width / 2, height - Math.max(40, height * 0.05));
         
@@ -235,9 +245,35 @@ class ProfileScene extends Phaser.Scene {
             feedbackText.style.color = "#44ff44";
             feedbackText.innerText = "Password updated successfully!";
             passInput.value = ""; // clear input
+            
+            // Auto close after 1.5s
+            this.time.delayedCall(1500, () => {
+                this.hidePasswordModal();
+            });
         } else {
             feedbackText.style.color = "#ff4444";
             feedbackText.innerText = result.error || "Failed to update password.";
         }
+    }
+
+    showPasswordModal() {
+        this.modalOverlay.setVisible(true).setAlpha(0);
+        this.tweens.add({ targets: this.modalOverlay, alpha: 1, duration: 300 });
+
+        this.pwdModal.show();
+        this.pwdFormDom.setVisible(true).setAlpha(0);
+        this.tweens.add({ targets: this.pwdFormDom, alpha: 1, duration: 300, delay: 100 });
+    }
+
+    hidePasswordModal() {
+        this.tweens.add({ targets: this.modalOverlay, alpha: 0, duration: 200, onComplete: () => this.modalOverlay.setVisible(false) });
+        this.pwdModal.hide();
+        this.tweens.add({ targets: this.pwdFormDom, alpha: 0, duration: 200, onComplete: () => this.pwdFormDom.setVisible(false) });
+        
+        // Clear feedback and input
+        const feedback = this.pwdFormDom.getChildByID('pwdFeedback');
+        if (feedback) feedback.innerText = '';
+        const input = this.pwdFormDom.getChildByName('newPassword');
+        if (input) input.value = '';
     }
 }
