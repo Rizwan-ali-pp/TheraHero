@@ -222,6 +222,7 @@ class FourFingerScene extends Phaser.Scene {
           ).toFixed(2)
         : 0;
 
+    dataManager.saveGameResult("four_finger_rush", { score: this.score, accuracy, avgReaction });
     this.showResultPanel(accuracy, avgReaction);
   }
 

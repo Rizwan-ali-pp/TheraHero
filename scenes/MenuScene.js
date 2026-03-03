@@ -7,6 +7,7 @@ class MenuScene extends Phaser.Scene {
     this.cameras.main.fadeIn(500);
     this.createBackground();
     this.createLayout();
+    this.createHeaderButtons();
     this.scale.on("resize", this.updateLayout, this);
   }
 
@@ -23,6 +24,21 @@ class MenuScene extends Phaser.Scene {
     // Vibrant purple-to-deep-violet gradient
     this.bg.fillGradientStyle(0x1a0533, 0x1a0533, 0x3d0f6b, 0x3d0f6b, 1);
     this.bg.fillRect(0, 0, width, height);
+  }
+
+  createHeaderButtons() {
+    const width = this.scale.width;
+    // Small buttons in the top right
+    this.profileBtn = new Button(this, width - 240, 50, "Profile", 0x4a1080, () => {
+        SceneTransitionManager.transitionTo(this, "ProfileScene");
+    }, 120, 40);
+    this.profileBtn.setFontSize(18);
+
+    this.signOutBtn = new Button(this, width - 100, 50, "Sign Out", 0xff4444, async () => {
+        await authManager.signOut();
+        SceneTransitionManager.transitionTo(this, "LoginScene");
+    }, 120, 40);
+    this.signOutBtn.setFontSize(18);
   }
 
   createLayout() {
@@ -70,6 +86,9 @@ class MenuScene extends Phaser.Scene {
     const height = this.scale.height;
 
     this.drawBackground();
+
+    if (this.profileBtn) this.profileBtn.setPosition(width - 240, 50);
+    if (this.signOutBtn) this.signOutBtn.setPosition(width - 100, 50);
 
     this.title.setPosition(width / 2, height * 0.18);
     this.subtitle.setPosition(width / 2, height * 0.25);

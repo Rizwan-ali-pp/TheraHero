@@ -237,6 +237,9 @@ class TracePathScene extends Phaser.Scene {
     this.isPlaying = false;
     // Play success sound
     AudioManager.playSound(this, "pop", { volume: 0.6 });
+    const finalSeconds = parseFloat((this.elapsedTime / 1000).toFixed(2));
+    
+    dataManager.saveGameResult("trace_path", { timeInSeconds: finalSeconds, errors: this.errors });
     this.showResultPanel();
   }
 

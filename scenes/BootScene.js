@@ -8,6 +8,6 @@ class BootScene extends Phaser.Scene {
   }
 
   create() {
-    SceneTransitionManager.transitionTo(this, "MenuScene", 0);
+    SceneTransitionManager.transitionTo(this, "LoginScene", 0);
   }
 }

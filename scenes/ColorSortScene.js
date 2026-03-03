@@ -356,6 +356,8 @@ class ColorSortScene extends Phaser.Scene {
     const avgReaction = this.reactionTimes.length > 0
       ? (this.reactionTimes.reduce((a, b) => a + b, 0) / this.reactionTimes.length / 1000).toFixed(2)
       : "N/A";
+    
+    dataManager.saveGameResult("color_sort", { score: this.score, accuracy, avgReaction });
     this.showResultPanel(accuracy, avgReaction);
   }
 

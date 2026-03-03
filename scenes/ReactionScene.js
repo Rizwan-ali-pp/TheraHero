@@ -289,6 +289,7 @@ class ReactionScene extends Phaser.Scene {
           ).toFixed(2)
         : 0;
 
+    dataManager.saveGameResult("pop_the_balloon", { accuracy, avgReaction });
     this.showResultPanel(accuracy, avgReaction);
   }
 

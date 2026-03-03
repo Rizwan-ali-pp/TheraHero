@@ -29,12 +29,12 @@ class KeyboardInputAdapter {
 
     // Setup keys mapping
     this.keys = {
-      ESC: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC),
-      SPACE: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE),
-      A: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
-      S: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
-      D: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
-      F: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F)
+      ESC: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC, false),
+      SPACE: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE, false),
+      A: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A, false),
+      S: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S, false),
+      D: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D, false),
+      F: scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F, false)
     };
 
     // Bind listeners and normalize to semantic events
