@@ -14,13 +14,19 @@ class AuthManager {
             firebase.initializeApp(firebaseConfig);
         }
         this.auth = firebase.auth();
+        this.auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(console.error);
         this.currentUser = null;
+        
+        // Keep currentUser continuously updated across the app
+        this.auth.onAuthStateChanged((user) => {
+            this.currentUser = user;
+        });
     }
 
     init() {
         return new Promise((resolve) => {
-            this.auth.onAuthStateChanged((user) => {
-                this.currentUser = user;
+            const unsubscribe = this.auth.onAuthStateChanged((user) => {
+                unsubscribe();
                 resolve(!!user);
             });
         });
@@ -45,7 +51,7 @@ class AuthManager {
         } catch (error) {
             console.error("SignIn Error:", error.message);
             // Provide friendlier errors
-            if (error.code === 'auth/invalid-credential') {
+            if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
                 return { success: false, error: "Invalid email or password" };
             }
             return { success: false, error: error.message };

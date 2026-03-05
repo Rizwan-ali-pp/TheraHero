@@ -69,7 +69,7 @@ class ProfileScene extends Phaser.Scene {
 
         // Simple DOM Form for the Modal
         const pwdFormHtml = `
-            <div id="pwdModalForm" style="display: flex; flex-direction: column; gap: 15px; align-items: center; width: 350px;">
+            <form id="pwdModalForm" style="display: flex; flex-direction: column; gap: 15px; align-items: center; width: 350px;" onsubmit="return false;">
                 <div style="position: relative; width: 100%;">
                     <input type="password" name="newPassword" placeholder="Enter new password" 
                            style="box-sizing: border-box; width: 100%; padding: 12px; padding-right: 40px; font-size: 16px; border-radius: 8px; border: 2px solid #e0b0ff; background: #1a0533; color: white; outline: none; font-family: 'Poppins', sans-serif;" />
@@ -80,7 +80,7 @@ class ProfileScene extends Phaser.Scene {
                     <button id="closePwdBtn" style="flex: 1; padding: 12px; font-size: 16px; border-radius: 8px; border: none; background: #ff4444; color: white; font-family: 'Poppins', sans-serif; cursor: pointer; font-weight: bold; transition: opacity 0.2s;">Cancel</button>
                 </div>
                 <p id="pwdFeedback" style="text-align: center; color: #ff4444; font-family: 'Poppins', sans-serif; font-size: 14px; margin: 0; min-height: 20px;"></p>
-            </div>
+            </form>
         `;
         
         this.pwdFormDom = this.add.dom(width / 2, height / 2 + 30).createFromHTML(pwdFormHtml);
@@ -228,7 +228,7 @@ class ProfileScene extends Phaser.Scene {
         
         if (!passInput || !feedbackText) return;
 
-        const newPwd = passInput.value.trim();
+        const newPwd = passInput.value;
 
         if (!newPwd || newPwd.length < 6) {
             feedbackText.style.color = "#ff4444";

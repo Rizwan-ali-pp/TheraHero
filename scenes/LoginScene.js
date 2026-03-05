@@ -27,7 +27,7 @@ class LoginScene extends Phaser.Scene {
 
         // DOM Element for Inputs (Email & Password)
         const formHtml = `
-            <div style="display: flex; flex-direction: column; gap: 15px; width: 300px;">
+            <form id="loginForm" style="display: flex; flex-direction: column; gap: 15px; width: 300px;" onsubmit="return false;">
                 <input type="email" name="email" placeholder="Email Address" 
                        style="padding: 12px; font-size: 18px; border-radius: 8px; border: 2px solid #ffd93d; background: #2a0845; color: white; outline: none; font-family: 'Poppins', sans-serif;" />
                 <div style="position: relative; width: 100%;">
@@ -36,7 +36,7 @@ class LoginScene extends Phaser.Scene {
                     <span id="togglePassword" style="position: absolute; right: 12px; top: 14px; cursor: pointer; font-size: 18px;">👁️</span>
                 </div>
                 <a href="#" id="forgotPassword" style="color: #ffd93d; text-align: right; font-size: 14px; text-decoration: none; font-family: 'Poppins', sans-serif; margin-top: -5px;">Forgot Password?</a>
-            </div>
+            </form>
         `;
         
         this.formDom = this.add.dom(width / 2, height * 0.5).createFromHTML(formHtml);
@@ -83,8 +83,8 @@ class LoginScene extends Phaser.Scene {
         
         if (!emailInput || !passwordInput) return null;
 
-        const email = emailInput.value.trim();
-        const password = passwordInput.value.trim();
+        const email = emailInput.value.toLowerCase().trim();
+        const password = passwordInput.value;
 
         if (!email || !password) {
             this.showFeedback("Please enter email and password.", "#ff4444");
