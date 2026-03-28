@@ -26,9 +26,19 @@
     <title>TheraHero</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.js"></script>
+
+    <!-- MediaPipe Machine Learning Hand Tracking SDKs -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 </head>
 
 <div id="game-container"></div>
+
+<!-- Hidden Video Element for MediaPipe Input -->
+<video id="webcam-video" style="display:none;" autoplay playsinline></video>
+
 
 <!-- Firebase Compat Libraries -->
 <script src="https://www.gstatic.com/firebasejs/10.10.0/firebase-app-compat.js"></script>
@@ -43,6 +53,7 @@
 <script src="managers/UIManager.js?v=14"></script>
 <script src="managers/AuthManager.js?v=15"></script>
 <script src="managers/DataManager.js?v=16"></script>
+<script src="managers/CameraManager.js?v=1"></script>
 
 <!-- Components -->
 <script src="components/Button.js?v=14"></script>
@@ -58,6 +69,7 @@
 <script src="scenes/FourFingerScene.js?v=14"></script>
 <script src="scenes/TracePathScene.js?v=14"></script>
 <script src="scenes/ColorSortScene.js?v=14"></script>
+<script src="scenes/PicturePuzzleScene.js?v=1"></script>
 <script src="main.js?v=15"></script>
 
 </body>

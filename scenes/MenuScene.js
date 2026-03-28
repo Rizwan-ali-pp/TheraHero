@@ -39,6 +39,26 @@ class MenuScene extends Phaser.Scene {
         SceneTransitionManager.transitionTo(this, "LoginScene");
     }, 120, 40);
     this.signOutBtn.setFontSize(18);
+
+    // Webcam Toggle (Top Left)
+    const isCamOn = (typeof cameraManager !== 'undefined' && cameraManager.isInitialized);
+    const camText = isCamOn ? "📷 Disable Camera" : "📷 Enable Camera";
+    const camColor = isCamOn ? 0xff4444 : 0x00c853; 
+
+    this.webcamToggleBtn = new Button(this, 120, 50, camText, camColor, () => {
+        if (!cameraManager.isInitialized) {
+            cameraManager.init();
+            this.webcamToggleBtn.txt.setText("📷 Disable Camera");
+            this.webcamToggleBtn.bg.setFillStyle(0xff4444);
+            this.webcamToggleBtn.baseColor = Phaser.Display.Color.ValueToColor(0xff4444);
+        } else {
+            cameraManager.stop();
+            this.webcamToggleBtn.txt.setText("📷 Enable Camera");
+            this.webcamToggleBtn.bg.setFillStyle(0x00c853);
+            this.webcamToggleBtn.baseColor = Phaser.Display.Color.ValueToColor(0x00c853);
+        }
+    }, 220, 40);
+    this.webcamToggleBtn.setFontSize(16);
   }
 
   createLayout() {
@@ -78,6 +98,11 @@ class MenuScene extends Phaser.Scene {
       () => SceneTransitionManager.transitionTo(this, "ColorSortScene")
     );
 
+    this.mode5Button = UIManager.createButton(
+      this, 0, 0, "🖼️  Picture Puzzle", 0x9b59b6,
+      () => SceneTransitionManager.transitionTo(this, "PicturePuzzleScene")
+    );
+
     this.updateLayout();
   }
 
@@ -93,11 +118,12 @@ class MenuScene extends Phaser.Scene {
     this.title.setPosition(width / 2, height * 0.18);
     this.subtitle.setPosition(width / 2, height * 0.25);
     
-    // Position 4 buttons evenly
-    this.mode1Button.setPosition(width / 2, height * 0.40);
-    this.mode2Button.setPosition(width / 2, height * 0.52);
-    this.mode3Button.setPosition(width / 2, height * 0.64);
-    this.mode4Button.setPosition(width / 2, height * 0.76);
+    // Position 5 buttons evenly
+    this.mode1Button.setPosition(width / 2, height * 0.35);
+    this.mode2Button.setPosition(width / 2, height * 0.47);
+    this.mode3Button.setPosition(width / 2, height * 0.59);
+    this.mode4Button.setPosition(width / 2, height * 0.71);
+    this.mode5Button.setPosition(width / 2, height * 0.83);
 
     this.title.setFontSize(Math.floor(width * 0.06));
     this.subtitle.setFontSize(Math.floor(width * 0.015));
@@ -106,5 +132,6 @@ class MenuScene extends Phaser.Scene {
     this.mode2Button.setFontSize(Math.floor(width * 0.022));
     this.mode3Button.setFontSize(Math.floor(width * 0.022));
     this.mode4Button.setFontSize(Math.floor(width * 0.022));
+    this.mode5Button.setFontSize(Math.floor(width * 0.022));
   }
 }
