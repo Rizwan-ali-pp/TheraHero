@@ -54,8 +54,8 @@ class CameraManager {
             }});
             
             this.hands.setOptions({
-                maxNumHands: 1, // Start simple: track 1 hand
-                modelComplexity: 1, // 0 is fast/less accurate, 1 is balanced
+                maxNumHands: 2, // Enable two-hand bilateral tracking!
+                modelComplexity: 1, // 1 is balanced accuracy/speed
                 minDetectionConfidence: 0.65,
                 minTrackingConfidence: 0.65
             });
@@ -148,7 +148,33 @@ class CameraManager {
                 this.isPinching = false;
             }
 
-            // Process Synthetic DOM Clicks for Phaser
+            // For FourFingerScene (8-Finger Rush), iterate over ALL hands detected!
+            results.multiHandLandmarks.forEach((landmarks, index) => {
+                const handedness = results.multiHandedness ? results.multiHandedness[index].label : "Right";
+                
+                // MediaPipe labels are mirrored by default for front-facing webcams. 
+                // "Right" label usually means the physical Left hand of the user.
+                const isPhysicalLeftHand = (handedness === "Right"); 
+                
+                // Mapping left-to-right on the physical screen:
+                // Left Hand: Pinky(0), Ring(1), Middle(2), Index(3)
+                // Right Hand: Index(4), Middle(5), Ring(6), Pinky(7)
+                const prefix = isPhysicalLeftHand ? "L_" : "R_";
+
+                if (isPhysicalLeftHand) {
+                    this.processFingerTap(landmarks, prefix + 'pinky', 20, 18, 0);
+                    this.processFingerTap(landmarks, prefix + 'ring', 16, 14, 1);
+                    this.processFingerTap(landmarks, prefix + 'middle', 12, 10, 2);
+                    this.processFingerTap(landmarks, prefix + 'index', 8, 6, 3);
+                } else {
+                    this.processFingerTap(landmarks, prefix + 'index', 8, 6, 4);
+                    this.processFingerTap(landmarks, prefix + 'middle', 12, 10, 5);
+                    this.processFingerTap(landmarks, prefix + 'ring', 16, 14, 6);
+                    this.processFingerTap(landmarks, prefix + 'pinky', 20, 18, 7);
+                }
+            });
+
+            // Process Synthetic DOM Drag/Clicks for Phaser using primary hand
             this.simulatePointerAction();
 
         } else {
@@ -245,6 +271,38 @@ class CameraManager {
         }
         
         this.wasPinching = this.isPinching;
+    }
+
+    processFingerTap(landmarks, fingerName, tipId, pipId, padIndex) {
+        if (!this.wasFingersDown) {
+            this.wasFingersDown = {};
+        }
+        
+        const tip = landmarks[tipId];
+        const pip = landmarks[pipId];
+        const wrist = landmarks[0];
+        
+        // Calculate the distance from the wrist to the fingertip and to the knuckle
+        const dTip = Math.hypot(tip.x - wrist.x, tip.y - wrist.y);
+        const dPip = Math.hypot(pip.x - wrist.x, pip.y - wrist.y);
+        
+        // If the tip distance falls below the PIP knuckle distance (plus a tiny tolerance buffer), 
+        // it means the finger is violently curled / folded downwards towards the palm!
+        const isFolded = dTip < (dPip * 1.05);
+        const wasFolded = this.wasFingersDown[fingerName];
+        
+        if (isFolded && !wasFolded) {
+            // FIRE TAP EVENT!
+            if (window.game && window.game.scene) {
+                const activeScene = window.game.scene.scenes.find(s => s.sys.isActive() && s.sys.isVisible());
+                if (activeScene && activeScene.inputManager && activeScene.scene.key === "FourFingerScene") {
+                    console.log(`FourFinger: ${fingerName} tapped!`);
+                    activeScene.inputManager.emit("PAD_PRESSED", padIndex);
+                }
+            }
+        }
+        
+        this.wasFingersDown[fingerName] = isFolded;
     }
 }
 

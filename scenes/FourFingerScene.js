@@ -50,41 +50,61 @@ class FourFingerScene extends Phaser.Scene {
     const height = this.scale.height;
 
     this.pads = [];
-    const labels = ["Index\n(A)", "Middle\n(S)", "Ring\n(D)", "Pinky\n(F)"];
     
-    // Draw a stylized hand silhouette background
+    // 8 labels matching Left to Right in anatomical order
+    const labels = [
+        "L-Pinky", "L-Ring", "L-Middle", "L-Index", 
+        "R-Index", "R-Middle", "R-Ring", "R-Pinky"
+    ];
+    
     this.handGraphics = this.add.graphics();
     this.handGraphics.fillStyle(0x4a1080, 0.5);
     this.handGraphics.lineStyle(2, 0x9b59b6, 1);
     
-    // Draw abstract palm and wrist
-    this.handGraphics.fillRoundedRect(width * 0.35, height * 0.6, width * 0.3, height * 0.3, 20);
-    this.handGraphics.strokeRoundedRect(width * 0.35, height * 0.6, width * 0.3, height * 0.3, 20);
+    // Draw Left Palm
+    this.handGraphics.fillRoundedRect(width * 0.15, height * 0.6, width * 0.25, height * 0.3, 20);
+    this.handGraphics.strokeRoundedRect(width * 0.15, height * 0.6, width * 0.25, height * 0.3, 20);
 
-    for (let i = 0; i < 4; i++) {
-      // Create circular pads that look like fingertips
-      const x = width * (0.2 + i * 0.2);
-      const y = height * 0.5 - (i === 1 || i === 2 ? 30 : 0); // Middle/Ring fingers slightly higher
+    // Draw Right Palm
+    this.handGraphics.fillRoundedRect(width * 0.60, height * 0.6, width * 0.25, height * 0.3, 20);
+    this.handGraphics.strokeRoundedRect(width * 0.60, height * 0.6, width * 0.25, height * 0.3, 20);
 
-      const pad = this.add.circle(x, y, 60, 0x2d0a50).setStrokeStyle(4, 0x9b59b6);
-      
-      this.handGraphics.fillRoundedRect(x - 20, y, 40, height * 0.6 - y + 20, 20); // Finger connecting to palm
-      this.handGraphics.strokeRoundedRect(x - 20, y, 40, height * 0.6 - y + 20, 20);
+    for (let i = 0; i < 8; i++) {
+        const isLeftHand = i < 4;
+        const handOffset = isLeftHand ? width * 0.10 : width * 0.55;
+        const fingerIndex = isLeftHand ? i : (i - 4); // 0 to 3 within the hand
+        
+        // Dynamic horizontal spread
+        const x = handOffset + (width * (0.05 + fingerIndex * 0.065));
+        
+        // Adjust height to create a natural curved keyboard setup
+        let yOffset = 0;
+        if (isLeftHand) {
+            if (i === 0) yOffset = 40; // Pinky lowest
+            if (i === 1) yOffset = 10; // Ring
+            if (i === 2) yOffset = -20; // Middle highest
+            if (i === 3) yOffset = 10; // Index
+        } else {
+            if (i === 7) yOffset = 40; // Pinky lowest
+            if (i === 6) yOffset = 10; // Ring
+            if (i === 5) yOffset = -20; // Middle highest
+            if (i === 4) yOffset = 10; // Index
+        }
 
-      const text = this.add
-        .text(pad.x, pad.y, labels[i], {
-          fontFamily: "Poppins",
-          fontSize: "18px",
-          color: "#e0b0ff",
-          fontStyle: "bold",
-          align: "center",
-        })
-        .setOrigin(0.5);
+        const y = height * 0.45 + yOffset;
 
-      this.pads.push({ pad, text });
+        const pad = this.add.circle(x, y, 40, 0x2d0a50).setStrokeStyle(4, 0x9b59b6);
+        
+        this.handGraphics.fillRoundedRect(x - 15, y, 30, height * 0.6 - y + 20, 15);
+        this.handGraphics.strokeRoundedRect(x - 15, y, 30, height * 0.6 - y + 20, 15);
+
+        const text = this.add
+            .text(pad.x, pad.y, labels[i], {
+                fontFamily: "Poppins", fontSize: "14px", color: "#e0b0ff", fontStyle: "bold", align: "center",
+            }).setOrigin(0.5);
+
+        this.pads.push({ pad, text });
     }
-    
-    // Push graphics behind pads
     this.handGraphics.setDepth(-1);
   }
 
@@ -141,10 +161,10 @@ class FourFingerScene extends Phaser.Scene {
     this.roundHandled = false;
     this.roundStartTime = this.time.now;
     
-    // Dynamic difficulty: Timer speeds up as round progresses
     const currentTimerLimit = Math.max(800, this.timeLimit - (this.round * 100));
 
-    this.activeIndex = Phaser.Math.Between(0, 3);
+    // Choose out of 8 fingers now!
+    this.activeIndex = Phaser.Math.Between(0, 7);
     this.highlightPad(this.activeIndex);
 
     if (this.roundTimer) {
@@ -203,6 +223,7 @@ class FourFingerScene extends Phaser.Scene {
       this.reactionTimes.push(reaction);
     } else {
       this.missed++;
+      this.audioManager.playError();
     }
 
     this.startRound();
@@ -246,14 +267,14 @@ class FourFingerScene extends Phaser.Scene {
 
     const restartBtn = UIManager.createButton(this, 0, 60, "Restart", 0x4CAF50, () => {
       this.scene.restart();
-    });
+    }, 180, 44);
 
     const menuBtn = UIManager.createButton(this, 0, 120, "Main Menu", 0x2196F3, () => {
       SceneTransitionManager.transitionTo(this, "MenuScene");
-    });
+    }, 180, 44);
     
-    restartBtn.setFontSize('20px');
-    menuBtn.setFontSize('20px');
+    restartBtn.setFontSize(20);
+    menuBtn.setFontSize(20);
 
     panel.add([resultText, restartBtn, menuBtn]);
 

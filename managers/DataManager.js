@@ -45,7 +45,8 @@ class DataManager {
                 pop_the_balloon: { count: 0, accuracySum: 0, reactionSum: 0 },
                 color_sort: { count: 0, scoreSum: 0, accuracySum: 0, reactionSum: 0 },
                 four_finger_rush: { count: 0, scoreSum: 0, accuracySum: 0, reactionSum: 0 },
-                trace_path: { count: 0, errorsSum: 0, timeSum: 0 }
+                trace_path: { count: 0, errorsSum: 0, timeSum: 0 },
+                picture_puzzle: { count: 0, errorsSum: 0, timeSum: 0 }
             };
 
             let totalPlays = 0;
@@ -69,7 +70,7 @@ class DataManager {
                         s.accuracySum += data.accuracy || 0;
                         s.reactionSum += parseFloat(data.avgReaction) || 0;
                     } 
-                    else if (gameName === "trace_path") {
+                    else if (gameName === "trace_path" || gameName === "picture_puzzle") {
                         s.errorsSum += data.errors || 0;
                         s.timeSum += data.timeInSeconds || 0;
                     }
