@@ -104,6 +104,35 @@ class DataManager {
             return null;
         }
     }
+    async getSessionHistory() {
+        const user = authManager.getUser();
+        if (!user) return null;
+
+        try {
+            const snap = await this.db.collection('users').doc(user.uid).collection('plays').get();
+            const docs = [];
+
+            snap.forEach(doc => {
+                const d = doc.data();
+                // Handle both Firestore Timestamps and native Dates
+                let ts = new Date(0);
+                if (d.timestamp) {
+                    ts = d.timestamp.toDate ? d.timestamp.toDate() : new Date(d.timestamp);
+                }
+                docs.push({ game: d.game, data: d.data || {}, timestamp: ts });
+            });
+
+            // Sort ascending (oldest first) client-side — no Firestore index needed
+            docs.sort((a, b) => a.timestamp - b.timestamp);
+
+            console.log('[DataManager] getSessionHistory:', docs.length, 'sessions');
+            return docs;
+
+        } catch (error) {
+            console.error('[DataManager] getSessionHistory error:', error.code, error.message);
+            return null;
+        }
+    }
 }
 
 // Create global instance

@@ -155,39 +155,43 @@ class ColorSortScene extends Phaser.Scene {
 
   spawnBoxes(boxColors) {
     const { width, height } = this.scale;
-    const boxSize = 100;
-    const margin  = 70;
+    const cx = width / 2;
+    const cy = height / 2 + 10; // Same center as the ball
 
-    const positions = [
-      { x: margin,         y: height * 0.30 },
-      { x: width - margin, y: height * 0.30 },
-      { x: margin,         y: height * 0.55 },
-      { x: width - margin, y: height * 0.55 },
-      { x: margin,         y: height * 0.80 },
-      { x: width - margin, y: height * 0.80 },
-    ];
+    const boxSize = 90;
+    // Radius of the circle the boxes sit on — close enough for short drags
+    const radius = Math.min(width, height) * 0.30;
+    const count = boxColors.length; // 6 boxes
 
     this.boxes = boxColors.map((color, i) => {
-      const { x, y } = positions[i];
+      // Spread boxes evenly around a full circle starting from the top
+      const angleDeg = (360 / count) * i - 90; // -90 so first box is at top
+      const angleRad = Phaser.Math.DegToRad(angleDeg);
+      const x = cx + Math.cos(angleRad) * radius;
+      const y = cy + Math.sin(angleRad) * radius;
+
       const container = this.add.container(x, y).setScale(0).setAlpha(0);
 
-      const glow  = this.add.rectangle(0, 0, boxSize + 12, boxSize + 12, color.hex, 0.2).setOrigin(0.5);
-      const box   = this.add.rectangle(0, 0, boxSize, boxSize, color.hex, 0.35)
-                      .setStrokeStyle(4, color.hex).setOrigin(0.5);
-      const label = this.add.text(0, boxSize / 2 + 18, color.name, {
-        fontFamily: "Poppins", fontSize: "14px", color: "#e2e8f0", fontStyle: "bold"
+      // Circular box instead of square for a cleaner look
+      const glow = this.add.circle(0, 0, boxSize / 2 + 10, color.hex, 0.2);
+      const box  = this.add.circle(0, 0, boxSize / 2, color.hex, 0.4);
+      box.setStrokeStyle(4, color.hex);
+
+      const label = this.add.text(0, boxSize / 2 + 16, color.name, {
+        fontFamily: "Poppins", fontSize: "13px", color: "#e2e8f0", fontStyle: "bold"
       }).setOrigin(0.5);
 
       container.add([glow, box, label]);
 
       this.tweens.add({
         targets: container, scale: 1, alpha: 1,
-        duration: 300, delay: i * 60, ease: "Back.easeOut"
+        duration: 300, delay: i * 50, ease: "Back.easeOut"
       });
 
       return { container, box, glow, color, x, y, size: boxSize };
     });
   }
+
 
   /* ─── BALL ───────────────────────────────────────────────── */
 
@@ -226,16 +230,16 @@ class ColorSortScene extends Phaser.Scene {
 
   highlightBoxUnder(bx, by) {
     this.boxes.forEach(b => {
-      const inside = Math.abs(bx - b.x) < b.size / 2 + 12 &&
-                     Math.abs(by - b.y) < b.size / 2 + 12;
-      b.box.setAlpha(inside ? 0.75 : 0.35);
+      const dist = Math.hypot(bx - b.x, by - b.y);
+      const inside = dist < b.size / 2 + 12;
+      b.box.setAlpha(inside ? 0.75 : 0.4);
       b.glow.setAlpha(inside ? 0.45 : 0.20);
     });
   }
 
   clearHighlights() {
     this.boxes.forEach(b => {
-      b.box.setAlpha(0.35);
+      b.box.setAlpha(0.4);
       b.glow.setAlpha(0.20);
     });
   }
@@ -247,12 +251,13 @@ class ColorSortScene extends Phaser.Scene {
 
     let droppedOn = null;
     for (const b of this.boxes) {
-      if (Math.abs(bx - b.x) < b.size / 2 + 10 &&
-          Math.abs(by - b.y) < b.size / 2 + 10) {
+      const dist = Math.hypot(bx - b.x, by - b.y);
+      if (dist < b.size / 2 + 10) {
         droppedOn = b;
         break;
       }
     }
+
 
     if (!droppedOn) {
       this.snapBallBack();

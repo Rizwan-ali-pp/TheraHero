@@ -66,12 +66,19 @@ class ProfileScene extends Phaser.Scene {
         // Container for Stat Cards
         this.cardsContainer = this.add.container(0, 0);
 
+        // Analyse Button (Bottom Center)
+        this.analyseBtn = UIManager.createButton(this, width / 2, height - 110, "📊 Analyse Progress", 0x0d2b1a, () => {
+            SceneTransitionManager.transitionTo(this, "AnalyseScene");
+        }, 220, 48);
+        this.analyseBtn.bg.setStrokeStyle(2, 0x00c853);
+        this.analyseBtn.setFontSize(16);
+
         // Back Button (Bottom Center)
         this.backBtn = UIManager.createButton(this, width / 2, height - 50, "⌂ Return to Menu", 0x24243e, () => {
             SceneTransitionManager.transitionTo(this, "MenuScene");
-        }, 220, 50);
+        }, 220, 42);
         this.backBtn.bg.setStrokeStyle(2, 0x9b59b6);
-        this.backBtn.setFontSize(16);
+        this.backBtn.setFontSize(15);
     }
 
     createPasswordModal() {
@@ -231,6 +238,7 @@ class ProfileScene extends Phaser.Scene {
         if (this.pwdModal) this.pwdModal.setPosition(width / 2, height / 2);
         if (this.modalOverlay) this.modalOverlay.setSize(width, height);
         if (this.pwdFormDom) this.pwdFormDom.setPosition(width / 2, height / 2 + 30);
+        if (this.analyseBtn) this.analyseBtn.setPosition(width / 2, height - 110);
         if (this.backBtn) this.backBtn.setPosition(width / 2, height - 50);
         if (this.stats && this.stats.detailed) this.renderStatCards();
     }

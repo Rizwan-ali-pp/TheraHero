@@ -223,7 +223,7 @@ class FourFingerScene extends Phaser.Scene {
       this.reactionTimes.push(reaction);
     } else {
       this.missed++;
-      this.audioManager.playError();
+      AudioManager.playSound(this, "error", { volume: 0.5 });
     }
 
     this.startRound();

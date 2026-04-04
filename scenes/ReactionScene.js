@@ -10,8 +10,10 @@ class ReactionScene extends Phaser.Scene {
     this.audioManager = new AudioManager(this);
 
     this.totalRounds = 10;
-    this.currentRound = 0;
+    this.currentRound = 0; // Number of balloons spawned/processed
+    this.poppedBalloons = 0; // Counter for successful pops
     this.missedBalloons = 0;
+    this.score = 0;
     this.reactionTimes = [];
 
     this.balloonTimeLimit = 3000;
@@ -42,8 +44,8 @@ class ReactionScene extends Phaser.Scene {
       .text(
         this.scale.width / 2,
         130,
-        "Popped: 0 | Missed: 0 / " + this.totalRounds,
-        { fontFamily: "Poppins", fontSize: "20px", color: "#e0b0ff" },
+        "Score: 0",
+        { fontFamily: "Poppins", fontSize: "24px", color: "#e0b0ff", fontStyle: "bold" },
       )
       .setOrigin(0.5);
 
@@ -100,9 +102,7 @@ class ReactionScene extends Phaser.Scene {
   startRound() {
     if (this.isPaused) return;
 
-    const totalShown = this.currentRound + this.missedBalloons;
-
-    if (totalShown >= this.totalRounds) {
+    if (this.currentRound >= this.totalRounds) {
       this.endSession();
       return;
     }
@@ -172,6 +172,9 @@ class ReactionScene extends Phaser.Scene {
     this.balloonTimer = this.time.delayedCall(this.balloonTimeLimit, () => {
       if (this.balloon && !this.isPaused) {
         this.missedBalloons++;
+        this.currentRound++;
+        this.score = Math.max(0, this.score - 1);
+        this.showFloatingText(this.balloon.x, this.balloon.y, "-1", "#ff4757");
         this.updateCounter();
         this.balloon.destroy();
         this.startRound();
@@ -179,11 +182,11 @@ class ReactionScene extends Phaser.Scene {
     });
 
     body.once("pointerdown", () => {
-      if (!this.isPaused) this.handleClick();
+      if (!this.isPaused) this.handleClick(randomColor);
     });
   }
 
-  handleClick() {
+  handleClick(popColor) {
     const reactionTime = Math.floor(this.time.now - this.startTime);
 
     if (this.balloonTimer) this.balloonTimer.remove();
@@ -191,6 +194,14 @@ class ReactionScene extends Phaser.Scene {
 
     this.reactionTimes.push(reactionTime);
     this.currentRound++;
+    this.poppedBalloons++;
+    this.score++;
+
+    const popX = this.balloon.x;
+    const popY = this.balloon.y - 20; // Focus on the balloon body, not the knot
+
+    this.showFloatingText(popX, popY, "+1", "#2ed573");
+    this.createPopEffect(popX, popY, popColor || 0xff6fa5);
 
     this.updateCounter();
     this.scoreText.setText("Reaction Time: " + reactionTime + " ms");
@@ -212,9 +223,70 @@ class ReactionScene extends Phaser.Scene {
   }
 
   updateCounter() {
-    this.roundText.setText(
-      `Popped: ${this.currentRound} | Missed: ${this.missedBalloons} / ${this.totalRounds}`,
-    );
+    this.roundText.setText(`Score: ${this.score}`);
+    
+    // Animate score text on change
+    this.tweens.add({
+        targets: this.roundText,
+        scale: 1.2,
+        duration: 100,
+        yoyo: true,
+        ease: 'Quad.easeOut'
+    });
+  }
+
+  showFloatingText(x, y, text, color) {
+    const floatText = this.add.text(x, y, text, {
+        fontFamily: "Poppins",
+        fontSize: "32px",
+        color: color,
+        fontStyle: "bold",
+        stroke: "#000000",
+        strokeThickness: 4
+    }).setOrigin(0.5).setDepth(100);
+
+    this.tweens.add({
+        targets: floatText,
+        y: y - 80,
+        alpha: 0,
+        duration: 800,
+        ease: 'Cubic.easeOut',
+        onComplete: () => floatText.destroy()
+    });
+  }
+
+  createPopEffect(x, y, color) {
+    // 1. Central Shockwave
+    const circle = this.add.circle(x, y, 10, 0xffffff, 0.9).setDepth(200);
+    this.tweens.add({
+        targets: circle,
+        radius: 80,
+        alpha: 0,
+        duration: 300,
+        onComplete: () => circle.destroy()
+    });
+
+    // 2. Fragment Particles
+    for (let i = 0; i < 15; i++) {
+        const angle = Phaser.Math.Between(0, 360);
+        const rad = Phaser.Math.DegToRad(angle);
+        const dist = Phaser.Math.Between(50, 150);
+        
+        const part = this.add.rectangle(x, y, 10, 10, color).setDepth(199);
+        part.setAngle(angle);
+
+        this.tweens.add({
+            targets: part,
+            x: x + Math.cos(rad) * dist,
+            y: y + Math.sin(rad) * dist,
+            alpha: 0,
+            scale: 0.1,
+            rotation: 2,
+            duration: Phaser.Math.Between(400, 600),
+            ease: 'Cubic.easeOut',
+            onComplete: () => part.destroy()
+        });
+    }
   }
 
   /* ---------------- PAUSE SYSTEM ---------------- */
@@ -277,8 +349,7 @@ class ReactionScene extends Phaser.Scene {
   /* ---------------- END ---------------- */
 
   endSession() {
-    //this.audioManager.playPop(); // Optional final sound or custom sound
-    const accuracy = Helpers.calculateAccuracy(this.currentRound, this.totalRounds);
+    const accuracy = Helpers.calculateAccuracy(this.poppedBalloons, this.totalRounds);
 
     const avgReaction =
       this.reactionTimes.length > 0
@@ -289,7 +360,7 @@ class ReactionScene extends Phaser.Scene {
           ).toFixed(2)
         : 0;
 
-    dataManager.saveGameResult("pop_the_balloon", { accuracy, avgReaction });
+    dataManager.saveGameResult("pop_the_balloon", { accuracy, avgReaction, score: this.score });
     this.showResultPanel(accuracy, avgReaction);
   }
 
@@ -302,12 +373,13 @@ class ReactionScene extends Phaser.Scene {
 
     const resultText = this.add
       .text(0, -30,
-        `Popped: ${this.currentRound}\nMissed: ${this.missedBalloons}\nAccuracy: ${accuracy}%\nAvg Reaction: ${avgReaction}s`,
+        `Final Score: ${this.score}\nAccuracy: ${accuracy}%\nAvg Reaction: ${avgReaction}s`,
         {
           fontFamily: "Poppins",
-          fontSize: "22px",
-          color: "#ffffffff",
+          fontSize: "24px",
+          color: "#ffffff",
           align: "center",
+          lineSpacing: 10
         })
       .setOrigin(0.5);
 

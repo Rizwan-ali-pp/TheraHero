@@ -16,7 +16,11 @@ class CameraManager {
         // Smoothing data
         this.smoothX = 0;
         this.smoothY = 0;
-        this.smoothingFactor = 0.3; // Low = Smoother/Laggy. High = Jittery/Fast.
+        this.smoothingFactor = 0.15; // Set lower (0.15) to aggressively kill jitter and flicker
+
+        // Frozen cursor position used during a pinch (so finger bend doesn't drift the cursor)
+        this.frozenX = 0;
+        this.frozenY = 0;
 
         // Interaction memory
         this.wasPinching = false;
@@ -122,17 +126,38 @@ class CameraManager {
             // 4: Thumb Tip
             // 0: Wrist
             
-            // X and Y are normalized between 0.0 and 1.0. 
-            // Note: X is usually mirrored from webcams, we subtract from 1.0
-            const rawX = 1.0 - this.landmarks[8].x; // Index Finger X
-            const rawY = this.landmarks[8].y;       // Index Finger Y
+            // --- STABLE CURSOR ANCHOR ---
+            // Track the index knuckle base (landmark 5) — far more stable than the fingertip
+            // since it barely moves when the finger bends during a pinch gesture.
+            const rawX = 1.0 - this.landmarks[5].x; // Index MCP (knuckle base) X
+            const rawY = this.landmarks[5].y;        // Index MCP (knuckle base) Y
 
-            // Exponential Moving Average (EMA) for smooth cursor movements
+            // Always update the smooth tracking position
             this.smoothX += this.smoothingFactor * (rawX - this.smoothX);
             this.smoothY += this.smoothingFactor * (rawY - this.smoothY);
-            
-            this.pointerX = this.smoothX;
-            this.pointerY = this.smoothY;
+
+            const justStartedPinch = this.isPinching && !this.wasPinching;
+
+            if (justStartedPinch) {
+                // Freeze cursor at the exact position pinch began — ensures click lands accurately
+                this.frozenX = this.smoothX;
+                this.frozenY = this.smoothY;
+            }
+
+            if (this.isPinching && this.draggedObject) {
+                // Dragging an object: let cursor follow the hand so the object moves with you
+                this.pointerX = this.smoothX;
+                this.pointerY = this.smoothY;
+            } else if (this.isPinching) {
+                // Pinching on a button/non-draggable: keep cursor frozen so it doesn't drift
+                this.pointerX = this.frozenX;
+                this.pointerY = this.frozenY;
+            } else {
+                // Hand is open: normal smooth tracking
+                this.pointerX = this.smoothX;
+                this.pointerY = this.smoothY;
+            }
+
 
             // Simple Pinch Detection (Distance between thumb tip and index tip)
             const dx = this.landmarks[8].x - this.landmarks[4].x;
