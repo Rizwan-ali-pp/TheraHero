@@ -59,6 +59,37 @@ class MenuScene extends Phaser.Scene {
         }
     }, 220, 40);
     this.webcamToggleBtn.setFontSize(16);
+
+    // Switch Camera Button (Beside the Webcam Toggle)
+    this.switchCameraBtn = new Button(this, 350, 50, "🔄 Switch Camera", 0x3498db, async () => {
+        const canSwitch = await cameraManager.switchCamera();
+        if (!canSwitch) {
+            alert("No alternate external cameras detected! Please plug one in via USB.");
+        }
+    }, 220, 40);
+    this.switchCameraBtn.setFontSize(16);
+
+    // Serial Hardware Toggle (Below Webcam)
+    const isSerialOn = (typeof serialManager !== 'undefined' && serialManager.isConnected);
+    const serialText = isSerialOn ? "🔌 Disconnect Hardware" : "🔌 Connect Hardware";
+    const serialColor = isSerialOn ? 0xff4444 : 0xff9100;
+
+    this.hardwareToggleBtn = new Button(this, 120, 100, serialText, serialColor, async () => {
+        if (!serialManager.isConnected) {
+            const success = await serialManager.connect();
+            if (success) {
+                this.hardwareToggleBtn.txt.setText("🔌 Disconnect Hardware");
+                this.hardwareToggleBtn.bg.setFillStyle(0xff4444);
+                this.hardwareToggleBtn.baseColor = Phaser.Display.Color.ValueToColor(0xff4444);
+            }
+        } else {
+            await serialManager.disconnect();
+            this.hardwareToggleBtn.txt.setText("🔌 Connect Hardware");
+            this.hardwareToggleBtn.bg.setFillStyle(0xff9100);
+            this.hardwareToggleBtn.baseColor = Phaser.Display.Color.ValueToColor(0xff9100);
+        }
+    }, 220, 40);
+    this.hardwareToggleBtn.setFontSize(16);
   }
 
   createLayout() {

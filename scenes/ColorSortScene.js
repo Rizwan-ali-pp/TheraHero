@@ -155,20 +155,17 @@ class ColorSortScene extends Phaser.Scene {
 
   spawnBoxes(boxColors) {
     const { width, height } = this.scale;
-    const cx = width / 2;
-    const cy = height / 2 + 10; // Same center as the ball
-
     const boxSize = 90;
-    // Radius of the circle the boxes sit on — close enough for short drags
-    const radius = Math.min(width, height) * 0.30;
-    const count = boxColors.length; // 6 boxes
 
+    // Arrange 6 boxes into two clean columns (3 left, 3 right)
+    // This perfectly prevents them from overlapping the central HUD text at the top!
     this.boxes = boxColors.map((color, i) => {
-      // Spread boxes evenly around a full circle starting from the top
-      const angleDeg = (360 / count) * i - 90; // -90 so first box is at top
-      const angleRad = Phaser.Math.DegToRad(angleDeg);
-      const x = cx + Math.cos(angleRad) * radius;
-      const y = cy + Math.sin(angleRad) * radius;
+      const isLeft = i < 3;
+      // Brought them closer to the center ball (previously 140)
+      const x = isLeft ? 210 : width - 210; 
+      
+      const rowIndex = i % 3;
+      const y = 200 + (rowIndex * 135); // Rows at Y: 200, 335, 470
 
       const container = this.add.container(x, y).setScale(0).setAlpha(0);
 
@@ -177,15 +174,15 @@ class ColorSortScene extends Phaser.Scene {
       const box  = this.add.circle(0, 0, boxSize / 2, color.hex, 0.4);
       box.setStrokeStyle(4, color.hex);
 
-      const label = this.add.text(0, boxSize / 2 + 16, color.name, {
-        fontFamily: "Poppins", fontSize: "13px", color: "#e2e8f0", fontStyle: "bold"
+      const label = this.add.text(0, boxSize / 2 + 18, color.name, {
+        fontFamily: "Poppins", fontSize: "14px", color: "#e2e8f0", fontStyle: "bold"
       }).setOrigin(0.5);
 
       container.add([glow, box, label]);
 
       this.tweens.add({
         targets: container, scale: 1, alpha: 1,
-        duration: 300, delay: i * 50, ease: "Back.easeOut"
+        duration: 350, delay: i * 60, ease: "Back.easeOut"
       });
 
       return { container, box, glow, color, x, y, size: boxSize };

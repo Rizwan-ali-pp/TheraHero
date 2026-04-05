@@ -107,11 +107,12 @@ class PicturePuzzleScene extends Phaser.Scene {
   }
 
   createHintButton() {
+    // Placed in the top-left corner to beautifully mirror the Pause button!
     this.hintBtn = UIManager.createButton(
-      this, this.scale.width / 2, this.scale.height - 40, "👁️  Show Hint", 0x3498db,
-      () => this.showHint(), 220, 44
+      this, 85, 35, "👁️  Hint", 0x3498db,
+      () => this.showHint(), 110, 38
     );
-    this.hintBtn.setFontSize(18);
+    this.hintBtn.setFontSize(15);
     this.hintBtn.setDepth(100);
   }
 
