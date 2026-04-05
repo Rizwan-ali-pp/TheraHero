@@ -320,7 +320,7 @@ class CameraManager {
             // FIRE TAP EVENT!
             if (window.game && window.game.scene) {
                 const activeScene = window.game.scene.scenes.find(s => s.sys.isActive() && s.sys.isVisible());
-                if (activeScene && activeScene.inputManager && activeScene.scene.key === "FourFingerScene") {
+                if (activeScene && activeScene.inputManager && activeScene.scene.key === "EightFingerRushScene") {
                     console.log(`FourFinger: ${fingerName} tapped!`);
                     activeScene.inputManager.emit("PAD_PRESSED", padIndex);
                 }

@@ -1,6 +1,6 @@
-class FourFingerScene extends Phaser.Scene {
+class EightFingerRushScene extends Phaser.Scene {
   constructor() {
-    super("FourFingerScene");
+    super("EightFingerRushScene");
   }
 
   create() {
@@ -110,10 +110,11 @@ class FourFingerScene extends Phaser.Scene {
 
   createUI() {
     this.infoText = this.add
-      .text(this.scale.width / 2, this.scale.height * 0.85, "", {
+      .text(this.scale.width / 2, this.scale.height * 0.85, "8-Finger Rush", {
         fontFamily: "Poppins",
-        fontSize: "22px",
+        fontSize: "24px",
         color: "#e2e8f0",
+        fontStyle: "bold"
       })
       .setOrigin(0.5);
   }
@@ -163,7 +164,7 @@ class FourFingerScene extends Phaser.Scene {
     
     const currentTimerLimit = Math.max(800, this.timeLimit - (this.round * 100));
 
-    // Choose out of 8 fingers now!
+    // Choose out of 8 fingers!
     this.activeIndex = Phaser.Math.Between(0, 7);
     this.highlightPad(this.activeIndex);
 
@@ -174,6 +175,9 @@ class FourFingerScene extends Phaser.Scene {
     this.roundTimer = this.time.delayedCall(currentTimerLimit, () => {
       if (!this.roundHandled && !this.isPaused) {
         this.missed++;
+        const p = this.pads[this.activeIndex].pad;
+        this.showFloatingText(p.x, p.y, "-1", "#ff4757");
+        
         this.clearHighlight();
         this.startRound();
       }
@@ -191,6 +195,26 @@ class FourFingerScene extends Phaser.Scene {
       p.pad.setStrokeStyle(4, 0x9b59b6);
       p.pad.setFillStyle(0x2d0a50, 1);
       this.tweens.add({ targets: p.pad, scale: 1, duration: 120, ease: 'Power2' });
+    });
+  }
+
+  showFloatingText(x, y, text, color) {
+    const floatText = this.add.text(x, y, text, {
+        fontFamily: "Poppins",
+        fontSize: "32px",
+        color: color,
+        fontStyle: "bold",
+        stroke: "#000000",
+        strokeThickness: 4
+    }).setOrigin(0.5).setDepth(100);
+
+    this.tweens.add({
+        targets: floatText,
+        y: y - 80,
+        alpha: 0,
+        duration: 800,
+        ease: 'Cubic.easeOut',
+        onComplete: () => floatText.destroy()
     });
   }
 
@@ -216,6 +240,7 @@ class FourFingerScene extends Phaser.Scene {
 
     if (pressedIndex === this.activeIndex) {
       this.score++;
+      this.showFloatingText(pressedPad.x, pressedPad.y, "+1", "#2ed573");
       
       this.audioManager.playPop();
 
@@ -223,6 +248,7 @@ class FourFingerScene extends Phaser.Scene {
       this.reactionTimes.push(reaction);
     } else {
       this.missed++;
+      this.showFloatingText(pressedPad.x, pressedPad.y, "-1", "#ff4757");
       AudioManager.playSound(this, "error", { volume: 0.5 });
     }
 

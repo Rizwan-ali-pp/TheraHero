@@ -84,8 +84,8 @@ class MenuScene extends Phaser.Scene {
     );
 
     this.mode2Button = UIManager.createButton(
-      this, 0, 0, "🖐  Four Finger Rush", 0x6bcb77, 
-      () => SceneTransitionManager.transitionTo(this, "FourFingerScene")
+      this, 0, 0, "🖐  8-Finger Rush", 0x6bcb77, 
+      () => SceneTransitionManager.transitionTo(this, "EightFingerRushScene")
     );
 
     this.mode3Button = UIManager.createButton(

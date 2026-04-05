@@ -5,7 +5,7 @@ const config = {
     dom: {
         createContainer: true
     },
-    scene: [BootScene, LoginScene, ProfileScene, AnalyseScene, MenuScene, ReactionScene, FourFingerScene, TracePathScene, ColorSortScene, PicturePuzzleScene],
+    scene: [BootScene, LoginScene, ProfileScene, AnalyseScene, MenuScene, ReactionScene, EightFingerRushScene, TracePathScene, ColorSortScene, PicturePuzzleScene],
     scale: {
         mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH
